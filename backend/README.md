@@ -1,3 +1,0 @@
-# Amőba Backend
-
-## Végpontok

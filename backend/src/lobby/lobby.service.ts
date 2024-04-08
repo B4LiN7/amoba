@@ -62,6 +62,10 @@ export class LobbyService {
         session: session.id,
         message: 'You are already in the lobby. Waiting for another player.',
       };
+    } else {
+      throw new InternalServerErrorException(
+        'Database error: Multiple lobbies found',
+      );
     }
   }
 }

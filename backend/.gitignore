@@ -1,3 +1,7 @@
+# Prisma
+prisma/migrations/
+prisma/amoba.db
+
 # compiled output
 /dist
 /node_modules

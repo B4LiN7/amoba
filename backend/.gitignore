@@ -1,6 +1,7 @@
 # Prisma
 prisma/migrations/
-prisma/amoba.db
+prisma/*.db
+prisma/*.db-journal
 
 # compiled output
 /dist

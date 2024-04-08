@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./amoba.db"
+}
+
+// LobbyEntry
+// A “játék keresése” során várakozó játékos adatait tárolja. 0 vagy 1 darab létezhet belőle.
+// sessionId: a játékos session azonosítója
+// timestamp: az időpont, amikor a “játék keresése”, vagy az utolsó get-game kérés megtörtént ezzel az azonosítóval
+
+model Lobby {
+  sessionId String   @id
+  timestamp DateTime @updatedAt
+}
+
+// Game
+// Egy folyamatban lévő, vagy befejezett játékot reprezentál.
+// session1: az egyik játékos session azonosítója
+// lastActionTimestamp: az utolsó lépés időpontja
+// session2: a másik játékos session azonosítója
+// state: a játék állapota JSON formában
+
+model Game {
+  gameId              String   @id @default(uuid())
+  session1            String
+  session2            String
+  lastActionTimestamp DateTime @updatedAt
+  state               String
+}

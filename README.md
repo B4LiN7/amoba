@@ -1,1 +1,1 @@
-# amoba
+# amobus

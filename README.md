@@ -1,1 +1,8 @@
-# amobus
+# Amőba
+
+## Frontend
+
+## Backend
+
+- Lobby
+- Game

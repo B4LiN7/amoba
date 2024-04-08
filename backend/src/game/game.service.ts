@@ -213,6 +213,28 @@ export class GameService {
         }
       }
     }
+
+    // Check reverse diagonals
+    for (let i = 0; i < board.length; i++) {
+      let count = 0;
+      let last = '';
+      for (let j = 0; j < board[0].length; j++) {
+        if (i + j >= board.length) {
+          break;
+        }
+        const cell = board[i + j][board[0].length - 1 - j];
+        if (cell === last && cell !== '') {
+          count++;
+          if (count === winLength) {
+            return cell as 'X' | 'O';
+          }
+        } else {
+          count = 1;
+          last = cell;
+        }
+      }
+    }
+
     return null;
   }
 

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GameService } from 'src/game/game.service';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class LobbyService {
@@ -18,50 +19,45 @@ export class LobbyService {
 
   /**
    * Searches for a game to join.
-   * @param session - The session of the player searching for a game
+   * @param req
    */
-  async searchGame(session: Record<string, any>) {
-    session.visits = session.visits ? session.visits + 1 : 1;
+  async searchGame(req: Request, res: Response) {
+
+    let id;
+    if (req.cookies.session) {
+      console.log('cookie found');
+      id = req.cookies.session;
+    }
+    else {
+      id = this.generateRandomString(32)
+    }
 
     const lobby = await this.prisma.lobby.findMany();
 
     if (lobby.length === 0) {
-      try {
-        await this.prisma.lobby.create({
-          data: {
-            sessionId: session.id,
-          },
-        });
-        return { session: session.id };
-      } catch (e) {
-        console.log(`Error while adding to database: ${e}`);
-        throw new InternalServerErrorException(
-          'Database error: You most likely already in lobby',
-        );
-      }
-    } else if (lobby.length === 1 && lobby[0].sessionId !== session.id) {
+      await this.prisma.lobby.create({
+        data: {
+          sessionId: id
+        },
+      });
+      res.cookie('session', id, { httpOnly: true }).json({ session: id });
+    } else if (lobby.length === 1 && lobby[0].sessionId !== id) {
       const startedGame = await this.game.createGame(
         lobby[0].sessionId,
-        session.id,
+        id,
       );
       await this.prisma.lobby.deleteMany();
 
       this.logger.log(
-        `Game ${startedGame.gameId} started between ${lobby[0].sessionId} and ${session.id}`,
+        `Game ${startedGame.gameId} started between ${lobby[0].sessionId} and ${id}`,
       );
-      return {
-        session: session.id,
-        message: 'Game started. You can access it with your session id.',
-      };
-    } else if (lobby.length === 1 && lobby[0].sessionId === session.id) {
+      res.cookie('session', id, { httpOnly: true }).json({ session: id, message: 'Game started. You can access it with your session id.' });
+    } else if (lobby.length === 1 && lobby[0].sessionId === id) {
       await this.prisma.lobby.update({
         where: { sessionId: lobby[0].sessionId },
         data: {},
       });
-      return {
-        session: session.id,
-        message: 'You are already in the lobby. Waiting for another player.',
-      };
+      res.cookie('session', id, { httpOnly: true }).json({ session: id, message: 'You are already in the lobby. Waiting for another player.' });
     } else {
       throw new InternalServerErrorException(
         'Database error: Multiple lobbies found',
@@ -71,5 +67,15 @@ export class LobbyService {
 
   async checkTimeout(timeout: number) {
     this.logger.log('Lobby timed out test');
+  }
+
+  private generateRandomString(length: number) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
   }
 }

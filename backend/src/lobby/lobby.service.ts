@@ -68,4 +68,8 @@ export class LobbyService {
       );
     }
   }
+
+  async checkTimeout(timeout: number) {
+    this.logger.log('Lobby timed out test');
+  }
 }

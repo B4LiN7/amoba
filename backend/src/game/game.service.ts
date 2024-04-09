@@ -176,6 +176,8 @@ export class GameService {
     }
 
     // Check columns
+    // board[0].length is the number of columns
+    // board.length is the number of rows
     for (let i = 0; i < board[0].length; i++) {
       let count = 0;
       let last = '';

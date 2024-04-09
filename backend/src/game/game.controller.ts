@@ -19,6 +19,6 @@ export class GameController {
 
   @Cron('*/15 * * * * *')
   handleCron() {
-    this.gameService.checkTimeout(1000);
+    this.gameService.checkTimeout(100);
   }
 }

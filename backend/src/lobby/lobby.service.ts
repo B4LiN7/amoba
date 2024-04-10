@@ -19,17 +19,14 @@ export class LobbyService {
 
   /**
    * Searches for a game to join.
-   * @param req
+   * @param req - Request
+   * @param res - Response
    */
   async searchGame(req: Request, res: Response) {
 
-    let id;
+    let sessionId = this.generateRandomString(32)
     if (req.cookies.session) {
-      console.log('cookie found');
-      id = req.cookies.session;
-    }
-    else {
-      id = this.generateRandomString(32)
+      sessionId = req.cookies.session;
     }
 
     const lobby = await this.prisma.lobby.findMany();
@@ -37,27 +34,30 @@ export class LobbyService {
     if (lobby.length === 0) {
       await this.prisma.lobby.create({
         data: {
-          sessionId: id
+          sessionId: sessionId
         },
       });
-      res.cookie('session', id, { httpOnly: true }).json({ session: id });
-    } else if (lobby.length === 1 && lobby[0].sessionId !== id) {
+
+      this.logger.log(`Player ${sessionId} joined the lobby`);
+      res.cookie('session', sessionId, { httpOnly: true }).json({ session: sessionId });
+    } else if (lobby.length === 1 && lobby[0].sessionId !== sessionId) {
       const startedGame = await this.game.createGame(
         lobby[0].sessionId,
-        id,
+        sessionId,
       );
       await this.prisma.lobby.deleteMany();
 
       this.logger.log(
-        `Game ${startedGame.gameId} started between ${lobby[0].sessionId} and ${id}`,
+        `Game ${startedGame.gameId} started between ${lobby[0].sessionId} and ${sessionId}`,
       );
-      res.cookie('session', id, { httpOnly: true }).json({ session: id, message: 'Game started. You can access it with your session id.' });
-    } else if (lobby.length === 1 && lobby[0].sessionId === id) {
+      res.cookie('session', sessionId, { httpOnly: true }).json({ session: sessionId, message: 'Game started. You can access it with your session  id.' });
+    } else if (lobby.length === 1 && lobby[0].sessionId === sessionId) {
       await this.prisma.lobby.update({
         where: { sessionId: lobby[0].sessionId },
         data: {},
       });
-      res.cookie('session', id, { httpOnly: true }).json({ session: id, message: 'You are already in the lobby. Waiting for another player.' });
+      this.logger.log(`Player ${sessionId} refreshed the lobby`);
+      res.cookie('session', sessionId, { httpOnly: true }).json({ session: sessionId, message: 'You are already in the lobby. Waiting for another player.' });
     } else {
       throw new InternalServerErrorException(
         'Database error: Multiple lobbies found',
@@ -65,8 +65,17 @@ export class LobbyService {
     }
   }
 
-  async checkTimeout(timeout: number) {
-    this.logger.log('Lobby timed out test');
+  async checkTimeout(seconds: number) {
+    const lobby = await this.prisma.lobby.findMany();
+    if (lobby.length === 1) {
+      const secondsSinceLastAction = Math.floor(
+          (Date.now() - new Date(lobby[0].timestamp).getTime()) / 1000,
+      );
+      if (secondsSinceLastAction > seconds) {
+        await this.prisma.lobby.deleteMany();
+        this.logger.log(`Lobby timed out`);
+      }
+    }
   }
 
   private generateRandomString(length: number) {

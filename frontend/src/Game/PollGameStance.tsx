@@ -1,7 +1,8 @@
 import axios from "axios"
     const PollGameStance = async ()=>{
-        const val = await axios.get("http://localhost:5173/play").then(res=>{
-                //console.log(res.data)
+        const sessionId = sessionStorage.getItem('my-session');
+        const val = await axios.get(`http://localhost:5173/game/${sessionId}`).then(res=>{
+                console.log(res.data)
                 return res.data
             }
         ).catch(err=>{

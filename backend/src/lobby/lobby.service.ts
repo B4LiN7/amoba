@@ -25,13 +25,14 @@ export class LobbyService {
   async searchGame(req: Request, res: Response) {
 
     let sessionId = this.generateRandomString(32)
-    if (req.cookies.session) {
+    /*if (req.cookies.session) {
       sessionId = req.cookies.session;
-    }
+    }*/
 
     const lobby = await this.prisma.lobby.findMany();
 
     if (lobby.length === 0) {
+      /*sessionId = this.generateRandomString(32);*/
       await this.prisma.lobby.create({
         data: {
           sessionId: sessionId

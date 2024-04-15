@@ -7,7 +7,7 @@ import {QueryClient, QueryClientProvider} from "react-query";
 function App() {
     const queryClient = new QueryClient()
   return (
-    <>
+    <div>
         <QueryClientProvider client={queryClient}>
         <Router>
             <Routes>
@@ -26,7 +26,7 @@ function App() {
             </Routes>
         </Router>
         </QueryClientProvider>
-    </>
+    </div>
   )
 }
 

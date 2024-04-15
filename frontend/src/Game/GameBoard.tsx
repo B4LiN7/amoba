@@ -1,17 +1,19 @@
-function GameBoard({board}:{board:string[][]}){
+function GameBoard({board,onButtonClick}:{board:string[][],onButtonClick:(x:number,y:number)=>void}){
     return(
         <div className={"gameBoard"}>
-            {board.map((row,id)=>{
+            <div className={"center"}>
+            {board && board.map((row,rowId)=>{
                 return(
-                    <div key={id} className={"row"}>
-                        {row.map((col,id)=>{
+                    <div key={rowId} className={"row"}>
+                        {row.map((col,colId)=>{
                             return(
-                                <button key={id} className={"gameButton"}>{col}</button>
+                                <button onClick={()=>onButtonClick(rowId,colId)} key={colId} className={"gameButton"}>{col}</button>
                             )
                         })}
                     </div>
                 )
             })}
+            </div>
         </div>
     )
 }

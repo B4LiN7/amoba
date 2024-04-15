@@ -14,6 +14,6 @@ export class LobbyController {
 
   @Cron('*/15 * * * * *')
   handleCron() {
-    this.lobbyService.checkTimeout(100);
+    this.lobbyService.checkTimeout(1000);
   }
 }

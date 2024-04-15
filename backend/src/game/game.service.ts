@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {Response} from "express";
 
 @Injectable()
 export class GameService {
@@ -12,9 +13,10 @@ export class GameService {
 
   /**
    * Gets the current game state.
+   * @param res - Response
    * @param sessionId - The session ID of the player requesting the game state
    */
-  async getGame(sessionId: string) {
+  async getGame(sessionId: string, res: Response) {
     const game = await this.prisma.game.findFirst({
       where: {
         OR: [{ session1: sessionId }, { session2: sessionId }],
@@ -25,11 +27,11 @@ export class GameService {
     }
 
     this.logger.log(`Game ${game.gameId} requested by ${sessionId}`);
-    return {
+    res.clearCookie('session').json({
       yourSymbol: game.session1 === sessionId ? 'X' : 'O',
       state: JSON.parse(game.state),
       winner: this.checkWin(JSON.parse(game.state)),
-    };
+    });
   }
 
   /**
